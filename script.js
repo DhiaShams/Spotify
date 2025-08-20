@@ -18,9 +18,9 @@ async function getSongs() {
             file: "songs/Piyu Bole (Parineeta) - (Raag.Fm).mp3"
         },
         {
-            name: "Saathiya",
+            name: "Saathiyaa",
             artist: "Sonu Nigam",
-            file: "songs/Saathiya - (Raag.Fm).mp3"
+            file: "songs/Saathiyaa - (Raag.Fm).mp3"
         },
         {
             name: "Kesariya (Brahmastra)",
