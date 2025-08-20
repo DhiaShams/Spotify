@@ -1,141 +1,154 @@
-let currSong=new Audio();
-let isSongLoaded = false; 
-let songs;
+let currSong = new Audio();
+let isSongLoaded = false;
+let songs = [];
+let currentIndex = 0;
 
 function formatTime(seconds) {
-    // Calculate the number of minutes
     const minutes = Math.floor(seconds / 60);
-    // Calculate the remaining seconds
     const remainingSeconds = seconds % 60;
-    // Format seconds to always show two digits (e.g., 05 instead of 5)
     const formattedSeconds = remainingSeconds < 10 ? `0${remainingSeconds}` : remainingSeconds;
-    // Return the formatted time as a string
     return `${minutes}:${formattedSeconds}`;
 }
 
 async function getSongs() {
-    let a = await fetch("http://127.0.0.1:3000/songs/");
-    let response = await a.text();
-    let div = document.createElement("div");
-    div.innerHTML = response;
-    let as = div.getElementsByTagName("a");
-    let songs = [];
-    for (let index = 0; index < as.length; index++) {
-        const element = as[index];
-        if (element.href.endsWith(".mp3")) {
-            const fileName = decodeURIComponent(element.href.split("/songs/")[1]);
-            songs.push(fileName); // Keep the decoded file name for display purposes
+    return [
+        {
+            name: "Piyu Bole (Parineeta)",
+            artist: "Shreya Ghoshal, Sonu Nigam",
+            file: "songs/Piyu Bole (Parineeta) - (Raag.Fm).mp3"
+        },
+        {
+            name: "Saathiya",
+            artist: "Sonu Nigam",
+            file: "songs/Saathiya - (Raag.Fm).mp3"
+        },
+        {
+            name: "Kesariya (Brahmastra)",
+            artist: "Arijit Singh",
+            file: "songs/Kesariya (Brahmastra) - (Raag.Fm).mp3"
+        },
+        {
+            name: "Kalank Duet",
+            artist: "Arijit Singh, Shilpa Rao",
+            file: "songs/Kalank Duet - (Raag.Fm).mp3"
+        },
+        {
+            name: "Fakira",
+            artist: "Sanam Puri, Neeti Mohan",
+            file: "songs/Fakira - (Raag.Fm).mp3"
+        },
+        {
+            name: "Duniya",
+            artist: "Akhil, Dhvani Bhanushali",
+            file: "songs/Duniya - (Raag.Fm).mp3"
+        },
+        {
+            name: "Mere Sohneya",
+            artist: "Sachet Tandon, Parampara Tandon",
+            file: "songs/Mere Sohneya - (Raag.Fm).mp3"
+        },
+        {
+            name: "Kaise Hua",
+            artist: "Vishal Mishra",
+            file: "songs/Kaise Hua - (Raag.Fm).mp3"
+        },
+        {
+            name: "Tujhe Kitna Chahne Lage",
+            artist: "Arijit Singh",
+            file: "songs/Tujhe Kitna Chahne Lage - (Raag.Fm).mp3"
+        },
+        {
+            name: "Ishq Hai",
+            artist: "Ankit Tiwari",
+            file: "songs/Ishq Hai - (Raag.Fm).mp3"
         }
-    }
-    return songs;
+    ];
 }
 
-const playMusic = (track,pause=false) => {
-    //let audio = new Audio(`http://127.0.0.1:3000/songs/${encodeURIComponent(track)}`);
-    currSong.src=`http://127.0.0.1:3000/songs/${encodeURIComponent(track)}`;
-    if(!pause){
-        currSong.play();
-        play.src="pause.svg";
-    }
-    isSongLoaded = true;
-    document.querySelector(".song-info").innerHTML=track
-    document.querySelector(".song-time").innerHTML="00:00/00:00"
-};
+function playMusic(index, pause = false) {
+    currentIndex = index;
+    currSong.src = songs[currentIndex].file;
 
+    if (!pause) {
+        currSong.play();
+        document.getElementById("play").src = "pause.svg";
+    }
+
+    isSongLoaded = true;
+    document.querySelector(".song-info").innerHTML =
+        `${songs[currentIndex].name} - ${songs[currentIndex].artist}`;
+    document.querySelector(".song-time").innerHTML = "00:00/00:00";
+}
 
 async function main() {
-    // Getting list of all songs
     songs = await getSongs();
-    console.log(songs);
 
     let ul = document.querySelector(".song-list").getElementsByTagName("ul")[0];
-    ul.innerHTML = ""; // Clear the list before adding new items
+    ul.innerHTML = "";
 
-    // Function to clean up the song name
-    const cleanSongName = (song) => {
-        return song
-            .replaceAll("%20", " ") // Replace URL-encoded spaces
-            .replace(/128\s?Kbps/i, "") // Remove "128 Kbps" if present
-            .trim();
-    };
-    
-
-    for (const song of songs) {
-        const cleanedName = cleanSongName(song);
-
-        ul.innerHTML += `<li class="music">
-                        <img class="invert" src="music.svg" alt="">
-                        <div class="info">
-                            <div>${cleanedName}</div> <!-- Use cleaned song name here -->
-                            <div id="artist">Artist</div>
-                        </div>
-                        <img id="playNow" class="invert" src="play.svg" alt="">
-                        </li>`; 
-    }
-    //attach an eventlistener to each song
-    Array.from(document.querySelector(".song-list").getElementsByTagName("li")).forEach(e=> {
-        e.addEventListener("click",element=>{
-            console.log(e.querySelector(".info").firstElementChild.innerHTML);
-            playMusic(e.querySelector(".info").firstElementChild.innerHTML.trim());
-        })
+    // Populate the UI list
+    songs.forEach((song, idx) => {
+        ul.innerHTML += `
+            <li class="music">
+                <img class="invert" src="music.svg" alt="">
+                <div class="info">
+                    <div>${song.name}</div>
+                    <div id="artist">${song.artist}</div>
+                </div>
+                <img id="playNow" class="invert" src="play.svg" alt="">
+            </li>`;
     });
-    //attach event listener to next and previous
-    play.addEventListener("click",()=>{
+
+    // Attach event listeners to list items
+    Array.from(document.querySelector(".song-list").getElementsByTagName("li")).forEach((li, idx) => {
+        li.addEventListener("click", () => {
+            playMusic(idx);
+        });
+    });
+
+    // Play/Pause button
+    const playBtn = document.getElementById("play");
+    playBtn.addEventListener("click", () => {
         if (!isSongLoaded && songs.length > 0) {
-            // If no song is loaded, play the first song
-            playMusic(songs[0]);
-        } 
-        else if(currSong.paused){
+            playMusic(0);
+        } else if (currSong.paused) {
             currSong.play();
-            play.src="pause.svg";
-        }
-        else{
+            playBtn.src = "pause.svg";
+        } else {
             currSong.pause();
-            play.src="play.svg";
+            playBtn.src = "play.svg";
         }
-    })
+    });
 
-    //time update event
+    // Time update
     currSong.addEventListener("timeupdate", () => {
-        console.log(currSong.currentTime, currSong.duration);
-        document.querySelector(".song-time").innerHTML = 
+        document.querySelector(".song-time").innerHTML =
             `${formatTime(Math.floor(currSong.currentTime))} / ${formatTime(Math.floor(currSong.duration))}`;
-            document.querySelector(".circle").style.left=(currSong.currentTime/currSong.duration)*100+"%";
+        document.querySelector(".circle").style.left = (currSong.currentTime / currSong.duration) * 100 + "%";
     });
 
-    //add event listener to seek bar
-    document.querySelector(".seekbar").addEventListener("click",(e)=>{
-        let percent=(e.offsetX/e.target.getBoundingClientRect().width)*100;
-        document.querySelector(".circle").style.left=percent +"%";
-        //change song duration when the seekbar is selected in various positions
-        currSong.currentTime=((currSong.duration)*percent)/100;
-    })
-
-    //Adding event listener to prev and next buttons
-    //prev
-    prev.addEventListener("click",()=>{
-        console.log("Prev clicked")
-        let currentFilename = decodeURIComponent(currSong.src.split("/").pop()); 
-        let idx = songs.indexOf(currentFilename);
-        if((idx-1)>=0){
-            playMusic(songs[idx-1])
-        }
-        console.log(songs, idx);
-    })
-    //next
-    next.addEventListener("click", () => {
-        console.log("next clicked");
-        let currentFilename = decodeURIComponent(currSong.src.split("/").pop()); 
-        let idx = songs.indexOf(currentFilename);
-        if((idx+1)>length){
-            playMusic(songs[idx+1])
-        }
-        console.log(songs, idx);
+    // Seekbar
+    document.querySelector(".seekbar").addEventListener("click", (e) => {
+        let percent = (e.offsetX / e.target.getBoundingClientRect().width) * 100;
+        document.querySelector(".circle").style.left = percent + "%";
+        currSong.currentTime = (currSong.duration * percent) / 100;
     });
-    
-    
+
+    // Prev button
+    const prevBtn = document.getElementById("prev");
+    prevBtn.addEventListener("click", () => {
+        if (currentIndex > 0) {
+            playMusic(currentIndex - 1);
+        }
+    });
+
+    // Next button
+    const nextBtn = document.getElementById("next");
+    nextBtn.addEventListener("click", () => {
+        if (currentIndex < songs.length - 1) {
+            playMusic(currentIndex + 1);
+        }
+    });
 }
 
-
-
-main()
+main();
